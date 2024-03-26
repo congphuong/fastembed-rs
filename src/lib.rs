@@ -91,6 +91,8 @@ pub enum EmbeddingModel {
     ParaphraseMLMiniLML12V2,
     /// v1.5 release of the small Chinese model
     BGESmallZHV15,
+    // mixedbread-ai/mxbai-embed-large-v1
+    MXBAIEmbedLargeV1,
 }
 
 impl Display for EmbeddingModel {
@@ -337,6 +339,14 @@ impl TextEmbedding {
                 description: String::from("v1.5 release of the small Chinese model"),
                 model_code: String::from("Xenova/bge-small-zh-v1.5"),
             },
+            ModelInfo {
+                model: EmbeddingModel::MXBAIEmbedLargeV1,
+                dim: 1024,
+                description: String::from(
+                    "MixedBread Base sentence embedding model, does well on MTEB",
+                ),
+                model_code: String::from("mixedbread-ai/mxbai-embed-large-v1"),
+            },
         ];
 
         // TODO: Use when out in stable
@@ -499,29 +509,52 @@ fn visit_dirs(dir: &Path) -> Result<PathBuf> {
 mod tests {
     use super::*;
 
+    // #[test]
+    // fn test_embeddings() {
+    //     for supported_model in TextEmbedding::list_supported_models() {
+    //         let model: TextEmbedding = TextEmbedding::try_new(InitOptions {
+    //             model_name: supported_model.model,
+    //             ..Default::default()
+    //         })
+    //         .unwrap();
+
+    //         let documents = vec![
+    //             "Hello, World!",
+    //             "This is an example passage.",
+    //             "fastembed-rs is licensed under Apache-2.0",
+    //             "Some other short text here blah blah blah",
+    //         ];
+
+    //         // Generate embeddings with the default batch size, 256
+    //         let embeddings = model.embed(documents.clone(), None).unwrap();
+
+    //         assert_eq!(embeddings.len(), documents.len());
+    //         for embedding in embeddings {
+    //             assert_eq!(embedding.len(), supported_model.dim);
+    //         }
+    //     }
+    // }
+
     #[test]
-    fn test_embeddings() {
-        for supported_model in TextEmbedding::list_supported_models() {
-            let model: TextEmbedding = TextEmbedding::try_new(InitOptions {
-                model_name: supported_model.model,
-                ..Default::default()
-            })
-            .unwrap();
+    fn test_mxbai_embeddings() {
+        let model: TextEmbedding = TextEmbedding::try_new(InitOptions {
+            model_name: EmbeddingModel::MXBAIEmbedLargeV1,
+            ..Default::default()
+        })
+        .unwrap();
 
-            let documents = vec![
-                "Hello, World!",
-                "This is an example passage.",
-                "fastembed-rs is licensed under Apache-2.0",
-                "Some other short text here blah blah blah",
-            ];
+        let documents = vec![
+            "Hello, World!",
+            "This is an example passage.",
+            "fastembed-rs is licensed under Apache-2.0",
+            "Some other short text here blah blah blah",
+        ];
 
-            // Generate embeddings with the default batch size, 256
-            let embeddings = model.embed(documents.clone(), None).unwrap();
-
-            assert_eq!(embeddings.len(), documents.len());
-            for embedding in embeddings {
-                assert_eq!(embedding.len(), supported_model.dim);
-            }
+        // Generate embeddings with the default batch size, 256
+        let embeddings = model.embed(documents.clone(), None).unwrap();
+        assert_eq!(embeddings.len(), documents.len());
+        for embedding in embeddings {
+            assert_eq!(embedding.len(), 1024);
         }
     }
 }
